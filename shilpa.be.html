@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Breathe - Connect with Yourself</title>
+    <style>
+        :root {
+            --bg-color: #0a0f14;
+            --circle-color: #80ced6;
+            --glow-color: rgba(128, 206, 214, 0.35);
+            --text-color: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            width: 220%;
+            height: 220%;
+            background: radial-gradient(circle at center, #1a2a33 0%, #0a0f14 70%);
+            z-index: -2;
+            animation: drift 22s infinite alternate ease-in-out;
+        }
+
+        @keyframes drift {
+            from { transform: translate(-5%, -5%); }
+            to { transform: translate(5%, 5%); }
+        }
+
+        .container {
+            position: relative;
+            width: min(95vw, 520px);
+            padding: 28px;
+            border-radius: 28px;
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 20px 80px rgba(0, 0, 0, 0.35);
+            text-align: center;
+            z-index: 1;
+        }
+
+        h1 {
+            margin: 0 0 10px;
+            font-size: 2rem;
+            letter-spacing: 1px;
+        }
+
+        .message {
+            margin: 0 auto 18px;
+            color: rgba(255, 255, 255, 0.82);
+            font-size: 0.96rem;
+            line-height: 1.5;
+            max-width: 440px;
+        }
+
+        .circle-container {
+            position: relative;
+            width: 320px;
+            height: 320px;
+            margin: 0 auto 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .circle {
+            width: 135px;
+            height: 135px;
+            background-color: var(--circle-color);
+            border-radius: 50%;
+            box-shadow: 0 0 80px var(--glow-color), 0 0 150px var(--glow-color);
+            transition: transform 1s ease, background-color 1s ease;
+        }
+
+        #instruction {
+            font-size: 1.15rem;
+            font-weight: 500;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            min-height: 44px;
+            margin-bottom: 12px;
+        }
+
+        #timer-display {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.75);
+            margin-bottom: 12px;
+        }
+
+        .controls,
+        .duration-controls,
+        .tracker {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .controls button,
+        .duration-controls button,
+        #main-toggle,
+        .overlay button {
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            cursor: pointer;
+            border-radius: 30px;
+            font-size: 0.92rem;
+            transition: all 0.25s ease;
+        }
+
+        .controls button:hover,
+        .duration-controls button:hover,
+        .overlay button:hover {
+            background: rgba(255, 255, 255, 0.18);
+        }
+
+        .active {
+            background: var(--circle-color);
+            color: #0a0f14;
+            border-color: var(--circle-color);
+        }
+
+        #main-toggle {
+            width: 140px;
+            margin: 12px auto 8px;
+            background: #ffffff;
+            color: #0a0f14;
+            font-weight: 700;
+        }
+
+        #main-toggle.paused {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .tracker {
+            margin-top: 18px;
+            gap: 16px;
+            color: rgba(255, 255, 255, 0.75);
+            font-size: 0.92rem;
+        }
+
+        .tracker span {
+            min-width: 140px;
+            display: inline-block;
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(10, 15, 20, 0.95);
+            z-index: 10;
+            padding: 18px;
+        }
+
+        .overlay.hidden {
+            display: none;
+        }
+
+        .overlay-card {
+            width: min(100%, 420px);
+            padding: 26px 24px 20px;
+            border-radius: 24px;
+            background: rgba(12, 17, 23, 0.98);
+            box-shadow: 0 20px 80px rgba(0, 0, 0, 0.4);
+            text-align: left;
+        }
+
+        .overlay-card h2 {
+            margin: 0 0 10px;
+            font-size: 1.7rem;
+        }
+
+        .overlay-card p {
+            margin: 0 0 18px;
+            color: rgba(255, 255, 255, 0.75);
+            line-height: 1.5;
+        }
+
+        .overlay-card label {
+            display: block;
+            margin-bottom: 12px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.95rem;
+        }
+
+        .overlay-card input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            outline: none;
+            margin-top: 6px;
+            margin-bottom: 12px;
+            font-size: 1rem;
+        }
+
+        .overlay-card small {
+            display: block;
+            margin-top: 12px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .status-message {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .status-message.success {
+            background: rgba(46, 204, 113, 0.2);
+            color: #2ecc71;
+            display: block;
+        }
+
+        .status-message.error {
+            background: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div id="welcome-overlay" class="overlay">
+        <div class="overlay-card">
+            <h2>Welcome</h2>
+            <p>Please enter your name and WhatsApp number to begin your breathing journey.</p>
+            <label>
+                Name
+                <input id="name-input" type="text" placeholder="Your name" />
+            </label>
+            <label>
+                WhatsApp Number
+                <input id="whatsapp-input" type="tel" placeholder="+1 (234) 567-8900" />
+            </label>
+            <button onclick="saveProfile()">Continue</button>
+            <div id="status-message" class="status-message"></div>
+            <small>Your information is stored locally and synced with our records.</small>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>Breathe</h1>
+        <div id="welcome-banner" class="message">Welcome to connect with yourself.</div>
+
+        <div class="circle-container">
+            <div class="circle" id="circle"></div>
+        </div>
+
+        <div id="instruction">Ready?</div>
+        <div id="timer-display">Choose your technique and session length to begin.</div>
+
+        <button id="main-toggle" onclick="togglePlay()">START</button>
+
+        <div class="controls">
+            <button id="btn-55" class="active" onclick="setMode('55')">5-5 Normal Breathing</button>
+            <button id="btn-478" onclick="setMode('478')">4-7-8 Breathing</button>
+            <button id="btn-box" onclick="setMode('box')">Box Breathing</button>
+        </div>
+
+        <div class="duration-controls" style="margin-top: 18px;">
+            <button id="btn-5" class="active" onclick="setDuration(5)">5 Minutes</button>
+            <button id="btn-10" onclick="setDuration(10)">10 Minutes</button>
+        </div>
+
+        <div class="tracker">
+            <span id="weekly-visits">Weekly visits: 0</span>
+            <span id="weekly-sessions">Weekly sessions: 0</span>
+        </div>
+    </div>
+
+    <script>
+        // Your Formspree URL
+        const FORMSPREE_URL = 'https://formspree.io/f/xwvageen';
+
+        const circle = document.getElementById('circle');
+        const instruction = document.getElementById('instruction');
+        const mainToggle = document.getElementById('main-toggle');
+        const buttons = document.querySelectorAll('.controls button');
+        const durationButtons = document.querySelectorAll('.duration-controls button');
+        const welcomeBanner = document.getElementById('welcome-banner');
+        const overlay = document.getElementById('welcome-overlay');
+        const nameInput = document.getElementById('name-input');
+        const whatsappInput = document.getElementById('whatsapp-input');
+        const weeklyVisitsEl = document.getElementById('weekly-visits');
+        const weeklySessionsEl = document.getElementById('weekly-sessions');
+        const timerDisplay = document.getElementById('timer-display');
+        const statusMessage = document.getElementById('status-message');
+
+        let currentMode = '55';
+        let isRunning = false;
+        let audioCtx, osc1, osc2, mainGain;
+        let breathingTimer;
+        let sessionDuration = 300;
+        let sessionRemaining = sessionDuration;
+        let sessionInterval;
+        let sessionActive = false;
+        let tracker = { weekStart: '', visits: 0, sessions: 0, lastVisit: '' };
+
+        window.addEventListener('load', () => {
+            initializeUser();
+            loadTracker();
+            updateWelcomeBanner();
+            updateTimerDisplay();
+            applyModeStyle();
+        });
+
+        function getWeekStart(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            return new Date(d.setDate(diff)).toISOString().slice(0, 10);
+        }
+
+        function initializeUser() {
+            const stored = localStorage.getItem('breathAppUser');
+            if (stored) {
+                const user = JSON.parse(stored);
+                welcomeBanner.textContent = `Welcome to connect with yourself, ${user.name}.`;
+                overlay.classList.add('hidden');
+            }
+        }
+
+        async function saveProfile() {
+            const name = nameInput.value.trim();
+            const whatsapp = whatsappInput.value.trim();
+            
+            if (!name || !whatsapp) {
+                showStatus('❌ Please fill in all fields', 'error');
+                return;
+            }
+
+            try {
+                showStatus('⏳ Saving your details...', 'success');
+                
+                // Send data to Formspree
+                const formData = new FormData();
+                formData.append('name', name);
+                formData.append('whatsapp', whatsapp);
+                
+                const response = await fetch(FORMSPREE_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    // Save locally
+                    localStorage.setItem('breathAppUser', JSON.stringify({ name, whatsapp }));
+                    welcomeBanner.textContent = `Welcome to connect with yourself, ${name}.`;
+                    showStatus('✅ Welcome! Your details have been saved.', 'success');
+                    
+                    setTimeout(() => {
+                        overlay.classList.add('hidden');
+                        initializeUser();
+                    }, 1500);
+                } else {
+                    throw new Error('Form submission failed');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                // Still save locally even if submission fails
+                localStorage.setItem('breathAppUser', JSON.stringify({ name, whatsapp }));
+                welcomeBanner.textContent = `Welcome to connect with yourself, ${name}.`;
+                showStatus('✅ Welcome! Your details have been saved.', 'success');
+                
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                    initializeUser();
+                }, 1500);
+            }
+        }
+
+        function showStatus(message, type) {
+            statusMessage.textContent = message;
+            statusMessage.className = `status-message ${type}`;
+        }
+
+        function loadTracker() {
+            const stored = localStorage.getItem('breathAppTracker');
+            const today = new Date().toISOString().slice(0, 10);
+            const currentWeek = getWeekStart(today);
+            
+            if (stored) {
+                try {
+                    tracker = JSON.parse(stored);
+                } catch (e) {
+                    tracker = { weekStart: currentWeek, visits: 0, sessions: 0, lastVisit: '' };
+                }
+            }
+            
+            if (tracker.weekStart !== currentWeek) {
+                tracker.weekStart = currentWeek;
+                tracker.visits = 0;
+                tracker.sessions = 0;
+                tracker.lastVisit = '';
+            }
+            
+            if (tracker.lastVisit !== today) {
+                tracker.visits += 1;
+                tracker.lastVisit = today;
+                localStorage.setItem('breathAppTracker', JSON.stringify(tracker));
+            }
+            
+            updateTrackerDisplay();
+        }
+
+        function updateTrackerDisplay() {
+            weeklyVisitsEl.textContent = `Weekly visits: ${tracker.visits}`;
+            weeklySessionsEl.textContent = `Weekly sessions: ${tracker.sessions}`;
+        }
+
+        function updateWelcomeBanner() {
+            const stored = localStorage.getItem('breathAppUser');
+            if (stored) {
+                const user = JSON.parse(stored);
+                welcomeBanner.textContent = `Welcome to connect with yourself, ${user.name}.`;
+            } else {
+                welcomeBanner.textContent = 'Welcome to connect with yourself. Please tell us your name and WhatsApp number.';
+            }
+        }
+
+        function initAudio() {
+            if (audioCtx) return;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            mainGain = audioCtx.createGain();
+            mainGain.gain.value = 0.08;
+            mainGain.connect(audioCtx.destination);
+
+            osc1 = audioCtx.createOscillator();
+            osc2 = audioCtx.createOscillator();
+            const ambientGain = audioCtx.createGain();
+            ambientGain.gain.value = 0.12;
+            osc1.connect(ambientGain);
+            osc2.connect(ambientGain);
+            ambientGain.connect(mainGain);
+
+            osc1.start();
+            osc2.start();
+            updateMusicStyle();
+        }
+
+        function updateMusicStyle() {
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+            if (currentMode === '55') {
+                osc1.type = 'sine';
+                osc2.type = 'triangle';
+                osc1.frequency.exponentialRampToValueAtTime(110, now + 1);
+                osc2.frequency.exponentialRampToValueAtTime(138.59, now + 1);
+                document.documentElement.style.setProperty('--circle-color', '#80ced6');
+                document.documentElement.style.setProperty('--glow-color', 'rgba(128, 206, 214, 0.35)');
+            } else if (currentMode === '478') {
+                osc1.type = 'sine';
+                osc2.type = 'sine';
+                osc1.frequency.exponentialRampToValueAtTime(330, now + 1);
+                osc2.frequency.exponentialRampToValueAtTime(440, now + 1);
+                document.documentElement.style.setProperty('--circle-color', '#ff8ebc');
+                document.documentElement.style.setProperty('--glow-color', 'rgba(255, 142, 188, 0.35)');
+            } else if (currentMode === 'box') {
+                osc1.type = 'triangle';
+                osc2.type = 'sine';
+                osc1.frequency.exponentialRampToValueAtTime(196, now + 1);
+                osc2.frequency.exponentialRampToValueAtTime(261.63, now + 1);
+                document.documentElement.style.setProperty('--circle-color', '#7ed6df');
+                document.documentElement.style.setProperty('--glow-color', 'rgba(126, 214, 223, 0.35)');
+            }
+        }
+
+        function applyModeStyle() {
+            buttons.forEach(btn => btn.classList.toggle('active', btn.id === `btn-${currentMode}`));
+            durationButtons.forEach(btn => btn.classList.toggle('active', btn.id === `btn-${sessionDuration / 60}`));
+            updateMusicStyle();
+        }
+
+        function togglePlay() {
+            if (overlay && !overlay.classList.contains('hidden')) return;
+            if (!audioCtx) initAudio();
+            isRunning = !isRunning;
+            if (isRunning) {
+                if (!sessionActive) {
+                    sessionActive = true;
+                    sessionRemaining = sessionDuration;
+                    timerDisplay.textContent = `Session time left: ${formatTime(sessionRemaining)}`;
+                    instruction.innerText = 'Begin gently';
+                }
+                mainToggle.innerText = 'PAUSE';
+                mainToggle.classList.add('paused');
+                audioCtx.resume();
+                startSessionTimer();
+                runBreathing();
+            } else {
+                pauseSession();
+            }
+        }
+
+        function pauseSession() {
+            isRunning = false;
+            mainToggle.innerText = 'RESUME';
+            mainToggle.classList.remove('paused');
+            instruction.innerText = 'Paused';
+            clearInterval(sessionInterval);
+            clearTimeout(breathingTimer);
+            if (audioCtx) audioCtx.suspend();
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            applyModeStyle();
+            if (isRunning) {
+                clearTimeout(breathingTimer);
+                runBreathing();
+            }
+        }
+
+        function setDuration(minutes) {
+            sessionDuration = minutes * 60;
+            sessionRemaining = sessionDuration;
+            durationButtons.forEach(btn => btn.classList.toggle('active', btn.id === `btn-${minutes}`));
+            updateTimerDisplay();
+        }
+
+        function updateTimerDisplay() {
+            timerDisplay.textContent = `Session time left: ${formatTime(sessionRemaining)}`;
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const secs = Math.floor(seconds % 60).toString().padStart(2, '0');
+            return `${mins}:${secs}`;
+        }
+
+        function startSessionTimer() {
+            clearInterval(sessionInterval);
+            updateTimerDisplay();
+            sessionInterval = setInterval(() => {
+                if (!isRunning) return;
+                sessionRemaining -= 1;
+                updateTimerDisplay();
+                if (sessionRemaining <= 0) {
+                    endSession();
+                }
+            }, 1000);
+        }
+
+        function speakInstruction(text) {
+            if (!window.speechSynthesis) return;
+            const utter = new SpeechSynthesisUtterance(text);
+            utter.volume = 0.4;
+            utter.rate = 0.95;
+            utter.pitch = 1.1;
+            window.speechSynthesis.cancel();
+            window.speechSynthesis.speak(utter);
+        }
+
+        async function updateCircle(scale, duration, text, vol, voiceText) {
+            if (!isRunning || sessionRemaining <= 0) return;
+            instruction.innerText = text;
+            speakInstruction(voiceText || text);
+            circle.style.transition = `transform ${duration}ms ease`;
+            circle.style.transform = `scale(${scale})`;
+            if (audioCtx) {
+                mainGain.gain.cancelScheduledValues(audioCtx.currentTime);
+                mainGain.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + duration / 1000);
+            }
+            return new Promise(resolve => {
+                breathingTimer = setTimeout(resolve, duration);
+            });
+        }
+
+        async function runBreathing() {
+            if (!isRunning || sessionRemaining <= 0) return;
+            if (currentMode === '55') {
+                await updateCircle(1.9, 5000, 'Breathe In', 0.14, 'Breathe in slowly');
+                if (!isRunning || sessionRemaining <= 0) return;
+                await updateCircle(1.0, 5000, 'Breathe Out', 0.06, 'Breathe out slowly');
+            } else if (currentMode === '478') {
+                await updateCircle(1.9, 4000, 'Inhale', 0.13, 'Inhale gently');
+                if (!isRunning || sessionRemaining <= 0) return;
+                await updateCircle(1.0, 7000, 'Hold', 0.03, 'Hold your breath');
+                if (!isRunning || sessionRemaining <= 0) return;
+                await updateCircle(1.0, 8000, 'Exhale', 0.05, 'Exhale quietly');
+            } else if (currentMode === 'box') {
+                await updateCircle(1.9, 4000, 'Inhale', 0.15, 'Inhale smoothly');
+                if (!isRunning || sessionRemaining <= 0) return;
+                await updateCircle(1.0, 4000, 'Hold', 0.04, 'Hold gently');
+                if (!isRunning || sessionRemaining <= 0) return;
+                await updateCircle(1.0, 4000, 'Exhale', 0.08, 'Exhale softly');
+                if (!isRunning || sessionRemaining <= 0) return;
+                await updateCircle(1.0, 4000, 'Hold', 0.04, 'Hold again');
+            }
+            if (isRunning && sessionRemaining > 0) {
+                runBreathing();
+            }
+        }
+
+        function endSession() {
+            clearInterval(sessionInterval);
+            clearTimeout(breathingTimer);
+            isRunning = false;
+            sessionActive = false;
+            sessionRemaining = 0;
+            mainToggle.innerText = 'START';
+            mainToggle.classList.remove('paused');
+            instruction.innerText = 'Welldone!';
+            timerDisplay.textContent = 'Session complete. Well done!';
+            if (audioCtx) audioCtx.suspend();
+            speakInstruction('Well done. Your session is complete.');
+            tracker.sessions += 1;
+            localStorage.setItem('breathAppTracker', JSON.stringify(tracker));
+            updateTrackerDisplay();
+        }
+    </script>
+</body>
+</html>
